@@ -120,4 +120,4 @@ The bundle also contains an `admin-actions` component. It is a supervisor table 
 
 ## License
 
-<!-- Add your license here, e.g. MIT -->
+Released under the [MIT License](LICENSE).
