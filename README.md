@@ -115,4 +115,4 @@ The bundle also contains an `admin-actions` component. It is a supervisor table 
 
 ## License
 
-Released under the [MIT License](LICENSE).
+See [LICENSE](LICENSE).
