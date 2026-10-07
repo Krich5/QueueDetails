@@ -58,21 +58,16 @@ To host your own copy, fork this repo and turn on GitHub Pages, or upload `index
 Add the `queue-scroll` component to the `advancedHeader` area of your layout JSON and pass in the agent's context from `$STORE`:
 
 ```json
-"advancedHeader": [
-  {
-    "comp": "queue-scroll",
-    "script": "https://krich5.github.io/QueueDetails/index.js",
-    "properties": {
-      "orgId": "$STORE.agent.orgId",
-      "token": "$STORE.auth.accessToken",
-      "teamId": "$STORE.agent.teamId",
-      "agentId": "$STORE.agent.agentId"
-    }
-  },
-  "digital-outbound",
-  "outdial-call",
-  "notification"
-]
+        {
+          "comp": "queue-scroll",
+          "properties": {
+            "orgId": "$STORE.agent.orgId",
+            "token": "$STORE.auth.accessToken",
+            "teamId": "$STORE.agent.teamId",
+            "agentId": "$STORE.agent.agentId"
+          },
+          "script": "https://krich5.github.io/QueueDetails/index.js"
+        }
 ```
 
 > A complete sample layout is included in this repo: [`Desktop_Layout_wQueueDetails.json`](Desktop_Layout_wQueueDetails.json)
