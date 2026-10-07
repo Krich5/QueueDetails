@@ -39,7 +39,7 @@ Hovering over the ticker pauses it.
 - Webex Contact Center tenant in the **US1** data center. The API base URL is hard-coded to `https://api.wxcc-us1.cisco.com`; see [Configuration](#configuration) for other regions.
 - An Agent Desktop layout you can edit and upload in Control Hub.
 - The agent's desktop access token must be able to read the Config and Search APIs, which the standard Agent Desktop token can.
-- A host for `QueueDetails.js` that the desktop can reach over HTTPS.
+- A host for `index.js` that the desktop can reach over HTTPS.
 
 ## Installation
 
@@ -48,10 +48,10 @@ Hovering over the ticker pauses it.
 The script is served from this repo by GitHub Pages:
 
 ```
-https://krich5.github.io/WxCC_QueueDetails/QueueDetails.js
+https://krich5.github.io/QueueDetails/index.js
 ```
 
-To host your own copy, fork this repo and turn on GitHub Pages, or upload `QueueDetails.js` to any static HTTPS host.
+To host your own copy, fork this repo and turn on GitHub Pages, or upload `index.js` to any static HTTPS host.
 
 ### 2. Add it to your Desktop Layout
 
@@ -61,7 +61,7 @@ Add the `queue-scroll` component to the `advancedHeader` area of your layout JSO
 "advancedHeader": [
   {
     "comp": "queue-scroll",
-    "script": "https://krich5.github.io/WxCC_QueueDetails/QueueDetails.js",
+    "script": "https://krich5.github.io/QueueDetails/index.js",
     "properties": {
       "orgId": "$STORE.agent.orgId",
       "token": "$STORE.auth.accessToken",

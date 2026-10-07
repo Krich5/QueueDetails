@@ -22,7 +22,7 @@
             "teamId": "$STORE.agent.teamId",
             "agentId": "$STORE.agent.agentId"
           },
-          "script": "https://krich5.github.io/WxCC_QueueDetails/QueueDetails.js"
+          "script": "https://krich5.github.io/QueueDetails/index.js"
         },
         {
           "comp": "digital-outbound",
