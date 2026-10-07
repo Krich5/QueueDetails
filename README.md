@@ -2,7 +2,6 @@
 
 A Webex Contact Center (WxCC) Agent Desktop widget that shows a live ticker of the queues an agent can take contacts from. For each queue it shows how many contacts are waiting and how long the oldest one has waited. It sits in the desktop header, so agents can see queue pressure without opening a separate report.
 
-<!-- Optional: add a screenshot, e.g. ![Queue Details in the header](screenshot.png) -->
 
 ## What it shows
 
