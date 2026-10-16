@@ -337,7 +337,7 @@
     waitCell(since, now) {
       return since
         ? `<span class="pill ${this.levelOf((now - since) / 1000, this.waitLevels)}" data-since="${since}">${clock(now - since)}</span>`
-        : '<span class="pill">--:--</span>';
+        : '<span class="pill">00:00</span>';
     }
 
     render() {
