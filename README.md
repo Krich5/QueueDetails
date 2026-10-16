@@ -1,116 +1,94 @@
 # Queue Details — WxCC Desktop Header Widget
 
-A Webex Contact Center (WxCC) Agent Desktop widget that shows a live ticker of the queues an agent can take contacts from. For each queue it shows how many contacts are waiting and how long the oldest one has waited. It sits in the desktop header, so agents can see queue pressure without opening a separate report.
-
+A Webex Contact Center (WxCC) Agent Desktop header card showing the combined queue numbers for every queue the signed-in agent is allowed to see. It sits in the desktop header, so queue pressure is visible without opening a report.
 
 ## What it shows
 
-Each queue appears as one item in the ticker:
+One compact card with five numbers, each totalled across all of the agent's queues:
 
-```
-Queue: Sales_Q        Queue: Support_Q        Queue: Billing_Q
-Contacts: 4           Contacts: 1             Contacts: 2
-Wait: 00:03:12        Wait: 00:00:45          Wait: 00:01:30
-```
+| Number | Meaning |
+|--------|---------|
+| **Waiting** | Contacts waiting right now. Turns yellow at 5 and red at 10 by default. |
+| **Longest wait** | How long the longest-waiting contact has waited, as a live clock. Turns yellow at 2 minutes and red at 5 minutes by default. |
+| **Offered today** | Contacts that came into the queues since midnight (local time) |
+| **Handled** | Today's contacts that ended normally |
+| **Abandoned** | Today's contacts that were abandoned |
 
-- **Queue**: the queue name
-- **Contacts**: the number of contacts waiting (parked) in that queue right now
-- **Wait**: how long the oldest waiting contact has been there (`HH:MM:SS`)
-
-Hovering over the ticker pauses it.
+Which queues count is decided by the agent's **desktop profile** (Control Hub → Desktop Profiles → Agent Statistics → Queue statistics: All, None or Specific). With "None" the card shows N/A. For the same numbers queue by queue, see [AgentDashboard](https://github.com/Krich5/AgentDashboard).
 
 ## How it works
 
-1. **Finds the agent's queues.** When the widget loads, it calls three WxCC Config API endpoints and combines the results into one queue filter:
-   - Agent-based queues the agent is assigned to: `GET /organization/{orgId}/v2/contact-service-queue/by-user-id/{agentId}/agent-based-queues`
-   - Skill-based queues the agent is eligible for: `GET /organization/{orgId}/v2/contact-service-queue/by-user-id/{agentId}/skill-based-queues`
-   - Queues that reference the agent's team: `GET /organization/{orgId}/team/{teamId}/incoming-references`
-2. **Pulls live queue stats.** It sends a GraphQL query to the WxCC Search API (`POST /search`). The query looks for active tasks with `status = parked` in those queues over the last 24 hours, grouped by `lastQueue`. For each queue it returns:
-   - `count(id)`: the number of contacts waiting
-   - `min(createdTime)`: when the oldest waiting contact arrived
-3. **Refreshes on a schedule.**
-   - Stats are fetched again every **30 seconds**.
-   - The display re-renders every **1 second**, so wait times count up smoothly between fetches.
-4. **Cleans up.** Both timers stop when the widget is removed from the desktop.
+The widget reads the WxCC Search API and Config API as the signed-in user. It needs only what the Desktop already has. There's no server behind it.
 
-## Requirements
-
-- Webex Contact Center tenant in the **US1** data center. The API base URL is hard-coded to `https://api.wxcc-us1.cisco.com`; see [Configuration](#configuration) for other regions.
-- An Agent Desktop layout you can edit and upload in Control Hub.
-- The agent's desktop access token must be able to read the Config and Search APIs, which the standard Agent Desktop token can.
-- A host for `index.js` that the desktop can reach over HTTPS.
+1. It reads the agent's desktop profile to learn which queues they may view.
+2. It reads waiting contacts and today's contact counts, and adds up the allowed queues.
+3. It refreshes every 15 seconds. The longest-wait clock ticks every second in between.
+4. If a refresh fails, it keeps the last numbers on screen, dims the card, and shows the reason when you hover over it.
 
 ## Installation
 
 ### 1. Host the script
 
-The script is served from this repo by GitHub Pages:
+With GitHub Pages turned on for this repo (Settings → Pages → `main` / root), the script is served at:
 
 ```
 https://krich5.github.io/QueueDetails/index.js
 ```
 
-To host your own copy, fork this repo and turn on GitHub Pages, or upload `index.js` to any static HTTPS host.
-
 ### 2. Add it to your Desktop Layout
 
-Add the `queue-scroll` component to the `advancedHeader` area of your layout JSON and pass in the agent's context from `$STORE`:
+Add `queue-scroll` to the `advancedHeader` area:
 
 ```json
-        {
-          "comp": "queue-scroll",
-          "properties": {
-            "orgId": "$STORE.agent.orgId",
-            "token": "$STORE.auth.accessToken",
-            "teamId": "$STORE.agent.teamId",
-            "agentId": "$STORE.agent.agentId"
-          },
-          "script": "https://krich5.github.io/QueueDetails/index.js"
-        }
+"advancedHeader": [
+  {
+    "comp": "queue-scroll",
+    "script": "https://krich5.github.io/QueueDetails/index.js",
+    "attributes": {
+      "token": "$STORE.auth.accessToken",
+      "org-id": "$STORE.agent.orgId",
+      "data-center": "$STORE.app.datacenter",
+      "agent-profile-id": "$STORE.agent.agentProfileID",
+      "darkmode": "$STORE.app.darkMode"
+    }
+  },
+  "digital-outbound",
+  "outdial-call",
+  "notification"
+]
 ```
 
 > A complete sample layout is included in this repo: [`Desktop_Layout_wQueueDetails.json`](Desktop_Layout_wQueueDetails.json)
 
 ### 3. Upload the layout
 
-In **Control Hub → Contact Center → Desktop Layouts**, upload the layout and assign it to the team(s) that should see the widget. Agents must sign out and back in to pick up the new layout.
+In **Control Hub → Contact Center → Desktop Layouts**, upload the layout and assign it to the teams that should see the card. Agents must sign out and back in to pick it up.
 
-## Properties
+## Settings
 
-| Property | Store binding | Description |
-|----------|---------------|-------------|
-| `token`   | `$STORE.auth.accessToken` | Bearer token used for all API calls |
-| `orgId`   | `$STORE.agent.orgId`      | WxCC organization ID |
-| `teamId`  | `$STORE.agent.teamId`     | Agent's current team, used to find team-referenced queues |
-| `agentId` | `$STORE.agent.agentId`    | Agent's user ID, used to find agent- and skill-based queues |
+Everything can be set as an attribute, as above. The component also accepts `token`, `orgId`, `dataCenter` and `agentProfileId` as properties, so layouts written for the earlier version keep working.
 
-## Configuration
-
-These values are compiled into the bundle. To change them, edit the source and rebuild:
-
-| Setting | Current value | Notes |
-|---------|---------------|-------|
-| API base URL | `https://api.wxcc-us1.cisco.com` | Change for other regions, e.g. `api.wxcc-eu1.cisco.com`, `api.wxcc-anz1.cisco.com` |
-| Stats refresh | 30 seconds | How often queue counts are fetched again |
-| Display refresh | 1 second | How often wait timers update on screen |
-| Lookback window | 24 hours | How far back the Search API looks for active parked tasks |
-| Position | `position: fixed; top: 8px; left: 200px` | Where the ticker sits in the header |
-| Width | `30vw` | Width of the ticker |
-
-## Built with
-
-- [Lit](https://lit.dev) 3 web components
-- [Vite](https://vite.dev) for the production bundle
-
-The bundle also contains an `admin-actions` component. It is a supervisor table that lists active telephony agents and has a **Log Out** button for each one, which calls `PUT /v1/agents/logout`. You can place it in a layout the same way, with `"comp": "admin-actions"` and a `token` property. The bundle also still has two Vite/Lit starter components, `my-element` and `hello-world`, which are not used.
+| Attribute | Required | Description |
+|-----------|----------|-------------|
+| `token` | Yes | The user's access token, `$STORE.auth.accessToken` |
+| `org-id` | Yes | WxCC organization ID, `$STORE.agent.orgId` |
+| `data-center` | Yes | From `$STORE.app.datacenter`. The region is picked out of the value (us1, eu1, eu2, anz1, ca1) |
+| `agent-profile-id` | Yes | The agent's desktop profile ID, `$STORE.agent.agentProfileID`. Without it the card says queue access can't be determined. |
+| `darkmode` | No | `$STORE.app.darkMode` |
+| `refresh-seconds` | No | How often data is fetched. Default `15` |
+| `stale-seconds` | No | How long before the card is dimmed as out of date. Default `60` |
+| `lookback-hours` | No | How far back to look for waiting contacts. Default `24` |
+| `waiting-warn` / `waiting-alert` | No | Waiting turns yellow and red at these counts. Defaults `5` and `10` |
+| `wait-warn-seconds` / `wait-alert-seconds` | No | Longest wait turns yellow and red at these seconds. Defaults `120` and `300` |
+| `offset-top` / `offset-left` | No | Where the card sits in the header. Defaults `8px` and `200px` |
+| `base-url` | No | Use this API address instead of the one built from `data-center` |
 
 ## Known limitations
 
-- **US1 only** unless you rebuild with a different API URL.
-- **The scroll animation may not run.** The `scroll` keyframes are defined, but no `animation-name` is applied to the list. Only the duration is set. If the ticker sits still, add `animation-name: scroll; animation-timing-function: linear; animation-iteration-count: infinite;` to `.marquee`.
-- **Console errors at startup.** The 1-second display refresh starts before the first stats call returns. Until that call finishes, `queueData` is undefined and each refresh throws an error. This clears up once the first data arrives.
-- **Contacts and Wait may be swapped.** The query asks for the `contacts` aggregation first and `oldestStart` second. The template reads them in the opposite order (`aggregation[1]` for Contacts, `aggregation[0]` for Wait). Check the numbers against a known queue before rolling this out.
-- **Queues with nothing waiting are hidden.** The Search API only returns queues that have parked contacts, so an empty queue doesn't appear in the ticker at all.
+- **Handled and Abandoned need a contact outcome field from the Search API.** If the API doesn't accept one, those two numbers show N/A.
+- **Handled counts contacts that ended normally.**
+- **Counts run from midnight, local time.**
+- **Queue names must be unique.** Numbers are matched to queues by name.
 
 ## License
 

@@ -16,11 +16,12 @@
       "advancedHeader": [
         {
           "comp": "queue-scroll",
-          "properties": {
-            "orgId": "$STORE.agent.orgId",
+          "attributes": {
             "token": "$STORE.auth.accessToken",
-            "teamId": "$STORE.agent.teamId",
-            "agentId": "$STORE.agent.agentId"
+            "org-id": "$STORE.agent.orgId",
+            "data-center": "$STORE.app.datacenter",
+            "agent-profile-id": "$STORE.agent.agentProfileID",
+            "darkmode": "$STORE.app.darkMode"
           },
           "script": "https://krich5.github.io/QueueDetails/index.js"
         },
