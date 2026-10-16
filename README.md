@@ -80,7 +80,7 @@ Everything can be set as an attribute, as above. The component also accepts `tok
 | `lookback-hours` | No | How far back to look for waiting contacts. Default `24` |
 | `waiting-warn` / `waiting-alert` | No | Waiting turns yellow and red at these counts. Defaults `5` and `10` |
 | `wait-warn-seconds` / `wait-alert-seconds` | No | Longest wait turns yellow and red at these seconds. Defaults `120` and `300` |
-| `offset-top` / `offset-left` | No | Where the card sits in the header. Defaults `8px` and `200px` |
+| `offset-top` / `offset-left` | No | By default the card sits in the header's normal flow, next to the other header items. Set either one to pin it at that position instead (for example `8px` and `200px`) |
 | `base-url` | No | Use this API address instead of the one built from `data-center` |
 
 ## Known limitations
