@@ -51,12 +51,12 @@
     :host {
       --bg: #ffffff; --fg: #121212; --muted: #5d6874; --line: #d9dee3;
       position: relative; display: inline-block; align-self: center; vertical-align: middle;
-      font-family: 'CiscoSansTT Regular', 'Helvetica Neue', Helvetica, Arial, sans-serif; color: var(--fg);
+      font-family: 'CiscoSansTT Regular', 'Helvetica Neue', Helvetica, Arial, sans-serif; color: var(--md-primary-text-color, var(--fg));
     }
     :host([floating]) { position: fixed; top: var(--qs-top, 8px); left: var(--qs-left, 200px); z-index: 9999; }
     :host([dark]) { --bg: #1f2327; --fg: #e8eaed; --muted: #a3acb5; --line: #353b41; }
-    .card { display: flex; align-items: center; gap: 18px; padding: 5px 16px; background: var(--bg);
-            border: 1px solid var(--line); border-radius: 8px; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12); }
+    .card { display: flex; align-items: center; gap: 18px; padding: 5px 16px; background: transparent;
+            border: 1px solid var(--md-primary-seperator-color, var(--line)); border-radius: 8px; }
     .card.stale { opacity: 0.6; }
     .cell { min-width: 56px; text-align: center; }
     .v { font-size: 15px; font-weight: 600; line-height: 22px; font-variant-numeric: tabular-nums; }
