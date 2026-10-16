@@ -15,7 +15,9 @@
   };
 
   const CATALOG_TTL_MS = 15 * 60 * 1000;
-  const OUTCOME_FIELD = 'terminationType';
+  const STATS_FIELD_SETS = [['terminationType', 'handleType'], ['terminationType'], []];
+  const HANDLED_TYPES = /^(normal|sudden_disconnect)$/i;
+  const ABANDONED_TYPE = /^abandoned$/i;
 
   const PROPS = {
     token: 'token',
@@ -262,14 +264,14 @@
         from: `${since.getTime()}`, to: `${now}`, timeComparator: 'createdTime',
         filter: {}, aggregations: [{ field: 'id', type: 'count', name: 'total' }],
       };
-      const attempts = this.statsOutcome === undefined ? [OUTCOME_FIELD, ''] : [this.statsOutcome];
+      const attempts = this.statsFields === undefined ? STATS_FIELD_SETS : [this.statsFields];
       let data = null;
-      let outcome = '';
-      for (const field of attempts) {
+      let fields = [];
+      for (const set of attempts) {
         try {
-          data = await this.search(`${STATS_QUERY_HEAD}${field ? ` ${field}` : ''} aggregation{name value}}}}`, variables);
-          outcome = field;
-          this.statsOutcome = field;
+          data = await this.search(`${STATS_QUERY_HEAD}${set.length ? ` ${set.join(' ')}` : ''} aggregation{name value}}}}`, variables);
+          fields = set;
+          this.statsFields = set;
           break;
         } catch (err) {
           if (err.fatal) throw err;
@@ -279,12 +281,19 @@
         this.statsRetryAt = now + 5 * 60 * 1000;
         return null;
       }
-      const rows = (data.task.tasks || []).map((row) => ({
-        name: (row.lastQueue && row.lastQueue.name) || '',
-        count: Number((row.aggregation || []).find((a) => a.name === 'total')?.value) || 0,
-        kind: outcome ? String(row[outcome] || '') : '',
-      }));
-      return { rows, outcome: Boolean(outcome) };
+      const hasTermination = fields.includes('terminationType');
+      const hasHandle = fields.includes('handleType');
+      const rows = (data.task.tasks || []).map((row) => {
+        const termination = hasTermination ? String(row.terminationType || '') : '';
+        const handle = hasHandle ? String(row.handleType || '') : '';
+        return {
+          name: (row.lastQueue && row.lastQueue.name) || '',
+          count: Number((row.aggregation || []).find((a) => a.name === 'total')?.value) || 0,
+          abandoned: ABANDONED_TYPE.test(termination),
+          handled: hasHandle ? HANDLED_TYPES.test(handle) : /^normal$/i.test(termination),
+        };
+      });
+      return { rows, outcome: hasTermination };
     }
 
     async refresh() {
@@ -319,8 +328,8 @@
               for (const row of stats.rows) {
                 if (!row.name || !include(row.name)) continue;
                 totals.offered += row.count;
-                if (/abandon/i.test(row.kind)) totals.abandoned += row.count;
-                else if (/normal/i.test(row.kind)) totals.handled += row.count;
+                if (row.abandoned) totals.abandoned += row.count;
+                if (row.handled) totals.handled += row.count;
               }
             }
             this.data = totals;

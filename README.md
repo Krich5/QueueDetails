@@ -11,8 +11,8 @@ One compact card with five numbers, each totalled across all of the agent's queu
 | **Waiting** | Contacts waiting right now. Turns yellow at 5 and red at 10 by default. |
 | **Longest wait** | How long the longest-waiting contact has waited, as a live clock. Turns yellow at 2 minutes and red at 5 minutes by default. |
 | **Offered today** | Contacts that came into the queues since midnight (local time) |
-| **Handled** | Today's contacts that ended normally |
-| **Abandoned** | Today's contacts that were abandoned |
+| **Handled** | Today's contacts whose Handle Type is `normal` or `sudden_disconnect`, the same as the Analyzer reports |
+| **Abandoned** | Today's contacts whose Termination Type is `abandoned` |
 
 Which queues count is decided by the agent's **desktop profile** (Control Hub → Desktop Profiles → Agent Statistics → Queue statistics: All, None or Specific). With "None" the card shows N/A. For the same numbers queue by queue, see [AgentDashboard](https://github.com/Krich5/AgentDashboard).
 
@@ -85,8 +85,7 @@ Everything can be set as an attribute, as above. The component also accepts `tok
 
 ## Known limitations
 
-- **Handled and Abandoned need a contact outcome field from the Search API.** If the API doesn't accept one, those two numbers show N/A.
-- **Handled counts contacts that ended normally.**
+- **Handled and Abandoned need contact outcome fields from the Search API.** If the API doesn't offer Handle Type, Handled falls back to contacts that ended normally and is approximate. If it offers no outcome fields at all, both show N/A.
 - **Counts run from midnight, local time.**
 - **Queue names must be unique.** Numbers are matched to queues by name.
 
