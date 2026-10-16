@@ -16,13 +16,6 @@ One compact card with five numbers, each totalled across all of the agent's queu
 
 Which queues count is decided by the agent's **desktop profile** (Control Hub → Desktop Profiles → Agent Statistics → Queue statistics: All, None or Specific). With "None" the card shows N/A. For the same numbers queue by queue, see [AgentDashboard](https://github.com/Krich5/AgentDashboard).
 
-## Header space
-
-The card is about 316 pixels wide with all five numbers. The header doesn't shrink for it, so on a crowded header it can push items off the right edge. To help:
-
-- On screens narrower than 1500 pixels it hides **Offered** and **Handled** automatically, and on screens narrower than 1150 pixels it also hides **Abandoned**.
-- Use the `show` setting to pick exactly which numbers appear. `waiting,longest` is about 140 pixels wide.
-
 ## How it works
 
 The widget reads the WxCC Search API and Config API as the signed-in user. It needs only what the Desktop already has. There's no server behind it.
@@ -87,7 +80,6 @@ Everything can be set as an attribute, as above. The component also accepts `tok
 | `lookback-hours` | No | How far back to look for waiting contacts. Default `24` |
 | `waiting-warn` / `waiting-alert` | No | Waiting turns yellow and red at these counts. Defaults `5` and `10` |
 | `wait-warn-seconds` / `wait-alert-seconds` | No | Longest wait turns yellow and red at these seconds. Defaults `120` and `300` |
-| `show` | No | Which numbers to show, as a comma list of `waiting`, `longest`, `offered`, `handled`, `abandoned`. Default is all five. Use fewer to save header space, for example `waiting,longest,abandoned` |
 | `offset-top` / `offset-left` | No | By default the card sits in the header's normal flow, next to the other header items. Set either one to pin it at that position instead (for example `8px` and `200px`) |
 | `base-url` | No | Use this API address instead of the one built from `data-center` |
 
