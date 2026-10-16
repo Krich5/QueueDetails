@@ -384,14 +384,16 @@
   }
 
   Object.entries(PROPS).forEach(([prop, attr]) => {
-    Object.defineProperty(QueueScroll.prototype, prop, {
-      get() {
-        return this.values[prop] !== undefined ? this.values[prop] : (this.getAttribute(attr) || '');
-      },
-      set(value) {
-        this.values[prop] = value;
-        if (this.isConnected) this.refresh();
-      },
+    new Set([prop, attr]).forEach((name) => {
+      Object.defineProperty(QueueScroll.prototype, name, {
+        get() {
+          return this.values[prop] !== undefined ? this.values[prop] : (this.getAttribute(attr) || '');
+        },
+        set(value) {
+          this.values[prop] = value;
+          if (this.isConnected) this.refresh();
+        },
+      });
     });
   });
 
