@@ -55,15 +55,17 @@
     }
     :host([floating]) { position: fixed; top: var(--qs-top, 8px); left: var(--qs-left, 200px); z-index: 9999; }
     :host([dark]) { --bg: #1f2327; --fg: #e8eaed; --muted: #a3acb5; --line: #353b41; }
-    .card { display: flex; align-items: center; gap: 18px; padding: 5px 16px; background: var(--bg);
+    .card { display: flex; align-items: center; gap: 12px; padding: 4px 10px; background: var(--bg);
             border: 1px solid var(--line); border-radius: 10px; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12); }
     .card.stale { opacity: 0.6; }
-    .cell { min-width: 56px; text-align: center; }
-    .v { font-size: 15px; font-weight: 600; line-height: 22px; font-variant-numeric: tabular-nums; }
-    .l { font-size: 10px; line-height: 12px; color: var(--muted); white-space: nowrap; }
-    .pill { display: inline-block; min-width: 2.6em; padding: 0 8px; border-radius: 999px; text-align: center; }
+    .cell { min-width: 46px; text-align: center; }
+    .v { font-size: 14px; font-weight: 600; line-height: 20px; font-variant-numeric: tabular-nums; }
+    .l { font-size: 9.5px; line-height: 11px; color: var(--muted); white-space: nowrap; }
+    .pill { display: inline-block; min-width: 2.6em; padding: 0 7px; border-radius: 999px; text-align: center; }
     .pill.lv-warn { background: #f5c542; color: #3d2e00; }
     .pill.lv-alert { background: #d9342b; color: #ffffff; }
+    @media (max-width: 1500px) { .cell[data-key="offered"], .cell[data-key="handled"] { display: none; } }
+    @media (max-width: 1150px) { .cell[data-key="abandoned"] { display: none; } }
     .msg { font-size: 12px; color: var(--muted); padding: 4px 0; }
   `;
 
@@ -71,7 +73,7 @@
     static get observedAttributes() {
       return [...Object.values(PROPS), 'base-url', 'darkmode', 'refresh-seconds', 'stale-seconds', 'lookback-hours',
               'waiting-warn', 'waiting-alert', 'wait-warn-seconds', 'wait-alert-seconds',
-              'offset-top', 'offset-left'];
+              'offset-top', 'offset-left', 'show'];
     }
 
     constructor() {
@@ -367,19 +369,26 @@
         this.card.innerHTML = '<div class="msg">Queue access unknown</div>';
         return;
       }
-      const cell = (value, label) => `<div class="cell"><div class="v">${value}</div><div class="l">${label}</div></div>`;
+      const wanted = String(this.getAttribute('show') || 'waiting,longest,offered,handled,abandoned')
+        .split(',').map((k) => k.trim().toLowerCase()).filter(Boolean);
+      const cells = (list) => list.filter(([key]) => wanted.includes(key))
+        .map(([key, value, label, tip]) => `<div class="cell" data-key="${key}" title="${tip}"><div class="v">${value}</div><div class="l">${label}</div></div>`).join('');
       if (d.none) {
-        this.card.innerHTML = ['Waiting', 'Longest wait', 'Offered', 'Handled', 'Abandoned'].map((l) => cell('N/A', l)).join('');
+        this.card.innerHTML = cells([
+          ['waiting', 'N/A', 'Waiting', 'Contacts waiting'], ['longest', 'N/A', 'Longest wait', 'Longest wait'],
+          ['offered', 'N/A', 'Offered', 'Offered today'], ['handled', 'N/A', 'Handled', 'Handled today'],
+          ['abandoned', 'N/A', 'Abandoned', 'Abandoned today'],
+        ]);
         return;
       }
       const waiting = `<span class="pill ${this.levelOf(d.waiting, this.waitingLevels)}">${d.waiting}</span>`;
-      this.card.innerHTML = [
-        cell(waiting, 'Waiting'),
-        cell(this.waitCell(d.waiting ? d.oldest : 0, now), 'Longest wait'),
-        cell(d.hasStats ? d.offered : 'N/A', 'Offered today'),
-        cell(d.outcome ? d.handled : 'N/A', 'Handled'),
-        cell(d.outcome ? d.abandoned : 'N/A', 'Abandoned'),
-      ].join('');
+      this.card.innerHTML = cells([
+        ['waiting', waiting, 'Waiting', 'Contacts waiting right now'],
+        ['longest', this.waitCell(d.waiting ? d.oldest : 0, now), 'Longest wait', 'Longest current wait'],
+        ['offered', d.hasStats ? d.offered : 'N/A', 'Offered', 'Contacts offered today'],
+        ['handled', d.outcome ? d.handled : 'N/A', 'Handled', 'Contacts handled today'],
+        ['abandoned', d.outcome ? d.abandoned : 'N/A', 'Abandoned', 'Contacts abandoned today'],
+      ]);
     }
 
     tick() {
