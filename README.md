@@ -2,6 +2,8 @@
 
 A Webex Contact Center (WxCC) Agent Desktop header card showing the combined queue numbers for every queue the signed-in agent is allowed to see. It sits in the desktop header, so queue pressure is visible without opening a report.
 
+![Queue Details card in the Agent Desktop header](images/queue-details.webp)
+
 ## What it shows
 
 One compact card with five numbers, each totalled across all of the agent's queues:
